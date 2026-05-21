@@ -304,6 +304,7 @@ class OscarAgentsStack(Stack):
             ## Routing Rules
             - For metrics, build status, test results → delegate to the Metrics Specialist.
             - For OpenSearch configuration, installation instructions, APIs, commands & information to build and test, release process questions as well as Best practices, troubleshooting guides, release workflows, and release manager duties. → query the knowledge base.
+            - For security vulnerability or CVE queries → Do NOT query the knowledge base or provide any vulnerability details. Instead, respond ONLY with: "For detailed vulnerability information and to explore the complete security advisory data, please visit the [Security Advisory Dashboard](https://advisories.opensearch.org)."
             - For anything outside the above → respond with a polite redirect (see below).
 
             ## Important Limitations

@@ -92,6 +92,18 @@ class MessageProcessor:
         logger.debug(f"User {user_id} authorization check: {is_authorized}")
         return is_authorized
 
+    # Patterns that indicate a security advisory / CVE query
+    _SECURITY_KEYWORDS = re.compile(
+        r'\b(cves?|ghsas?|vulnerability|vulnerabilities|security\s+advisory|security\s+advisories'
+        r'|security\s+scan|security\s+issue|security\s+risk|security\s+flaw'
+        r'|exploit|patch\s+tuesday|sbom)\b',
+        re.IGNORECASE,
+    )
+
+    def _is_security_advisory_query(self, query: str) -> bool:
+        """Return True if the query is about CVEs or security vulnerabilities."""
+        return bool(self._SECURITY_KEYWORDS.search(query))
+
     def process_message(self, channel: str, thread_ts: str, user_id: str,
                         text: str, say: Callable, message_ts: str = None,
                         slash_command: str = None, skip_context_storage: bool = False) -> None:
@@ -138,6 +150,22 @@ class MessageProcessor:
                 logger.warning(f"Input validation failed for user {user_id}: {e}")
                 self.reaction_manager.manage_reactions(channel, reaction_ts, add_reaction="x", remove_reaction="thinking_face")
                 say(text=e.user_message, thread_ts=thread_ts)
+                return
+
+            # Block security advisory queries from non-privileged users
+            if not self.is_fully_authorized_user(user_id) and self._is_security_advisory_query(query):
+                logger.info(f"Non-privileged user {user_id} attempted security advisory query — returning dashboard redirect")
+                self.reaction_manager.manage_reactions(
+                    channel, reaction_ts,
+                    add_reaction="white_check_mark",
+                    remove_reaction="thinking_face"
+                )
+                say(
+                    text="For detailed vulnerability information and to explore the complete "
+                         "security advisory data, please visit the "
+                         "<https://advisories.opensearch.org|Security Advisory Dashboard>.",
+                    thread_ts=thread_ts,
+                )
                 return
 
             # ALWAYS add user context to query for agent to use as needed
