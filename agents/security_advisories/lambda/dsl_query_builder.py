@@ -270,6 +270,7 @@ def query_vulnerabilities(
     elif project_name:
         resolved_tag = None
     else:
+        logger.warning('Unscoped query — defaulting to origin/main')
         resolved_tag = 'origin/main'
 
     # Build the DSL query
