@@ -295,15 +295,15 @@ class TestCollapseDeduplication:
 
 
 # ---------------------------------------------------------------------------
-# Default version behavior
+# Parameter pass-through to DSL query builder
 # ---------------------------------------------------------------------------
 
 
-class TestDefaultVersionBehavior:
-    """Test that missing version/project_name defaults to origin/main in the builder."""
+class TestParameterPassThrough:
+    """Test that the handler forwards version/project_name to the builder unchanged."""
 
-    def test_neither_version_nor_project_name_defaults_to_origin_main(self):
-        """When both version and project_name are absent, builder defaults to origin/main."""
+    def test_absent_version_and_project_name_passed_as_none(self):
+        """When both version and project_name are absent, handler passes None to builder."""
         mock_dsl = _make_mock_dsl_query_builder()
         mock_dsl.query_vulnerabilities.return_value = {'hits': {'hits': []}}
         mod, _ = _load_vulnerabilities_handler(mock_dsl=mock_dsl)
@@ -312,14 +312,13 @@ class TestDefaultVersionBehavior:
             {'query': 'Show all CVEs', '_access_tier': 'privileged'}, 'test-050',
         )
 
-        # Handler passes through to builder; builder applies origin/main default
         mock_dsl.query_vulnerabilities.assert_called_once_with(
             version=None, project_name=None,
         )
         assert result['status'] == 'success'
 
-    def test_empty_string_version_and_project_name_defaults_to_origin_main(self):
-        """Empty strings for both version and project_name are treated as absent."""
+    def test_empty_string_version_and_project_name_passed_through(self):
+        """Empty strings for version and project_name are forwarded as-is."""
         mock_dsl = _make_mock_dsl_query_builder()
         mock_dsl.query_vulnerabilities.return_value = {'hits': {'hits': []}}
         mod, _ = _load_vulnerabilities_handler(mock_dsl=mock_dsl)
@@ -334,8 +333,8 @@ class TestDefaultVersionBehavior:
         )
         assert result['status'] == 'success'
 
-    def test_none_version_and_project_name_defaults_to_origin_main(self):
-        """Explicit None for both version and project_name are treated as absent."""
+    def test_none_version_and_project_name_passed_through(self):
+        """Explicit None for version and project_name are forwarded as-is."""
         mock_dsl = _make_mock_dsl_query_builder()
         mock_dsl.query_vulnerabilities.return_value = {'hits': {'hits': []}}
         mod, _ = _load_vulnerabilities_handler(mock_dsl=mock_dsl)
