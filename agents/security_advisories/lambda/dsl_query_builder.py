@@ -217,8 +217,9 @@ def _error_response(
 def _connection_error(exception: Exception) -> Dict[str, Any]:
     """Return a connection error without leaking internal details.
 
-    Logs the original exception internally for diagnostics, then returns
-    a sanitized error dict via _error_response for consistent structure.
+    Intentionally does NOT log the raw exception because connection
+    failures can contain internal hostnames, ports, or credentials
+    embedded in connection strings.
 
     Args:
         exception: The caught exception from the connection failure.
@@ -226,7 +227,6 @@ def _connection_error(exception: Exception) -> Dict[str, Any]:
     Returns:
         Sanitized error dict with consistent structure.
     """
-    logger.error(f'CONNECTION_ERROR: {type(exception).__name__}: {exception}')
     return _error_response(
         'connection_error',
         'Failed to connect to the OpenSearch cluster. '
